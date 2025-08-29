@@ -18,7 +18,7 @@ function addTask() {
 }
 
 function createTaskElement(taskText, isCompleted = false) {
-  // If no heading yet, add it
+  // If heading doesn't exist, add it
   if (!document.querySelector("#taskList .list-heading")) {
     const headingLi = document.createElement("li");
     headingLi.textContent = "Your List";
@@ -47,7 +47,7 @@ function createTaskElement(taskText, isCompleted = false) {
   const editIcon = document.createElement("i");
   editIcon.className = "fas fa-edit edit";
   editIcon.onclick = function () {
-    startEditing(li, span, actions);
+    startEditing(li, span, actions, editIcon);
   };
 
   // Delete icon
@@ -100,7 +100,7 @@ function loadTasks() {
 }
 
 // Editing logic
-function startEditing(li, span, actions) {
+function startEditing(li, span, actions, editIcon) {
   const input = document.createElement("input");
   input.type = "text";
   input.value = span.textContent;
@@ -127,3 +127,10 @@ function startEditing(li, span, actions) {
   actions.replaceChild(saveIcon, editIcon);
   input.focus();
 }
+
+// Add task when Enter is pressed in input box
+taskInput.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") {
+    addTask();
+  }
+});
