@@ -1,81 +1,133 @@
 const taskInput = document.getElementById("taskInput");
 const taskList = document.getElementById("taskList");
 
-// Load tasks when page loads
+// Load tasks on page load
 window.onload = loadTasks;
 
+// Add task
 function addTask() {
   const taskText = taskInput.value.trim();
   if (taskText === "") {
     alert("Please enter a task!");
     return;
   }
-
   createTaskElement(taskText);
   saveTasks();
-
   taskInput.value = "";
+  updateHeadingAndBorder();
 }
 
+// Create task element
 function createTaskElement(taskText, isCompleted = false) {
-  // If heading doesn't exist, add it
-  if (!document.querySelector("#taskList .list-heading")) {
-    const headingLi = document.createElement("li");
-    headingLi.textContent = "Your List";
-    headingLi.className = "list-heading";
-    taskList.appendChild(headingLi);
-  }
-
   const li = document.createElement("li");
   if (isCompleted) li.classList.add("completed");
 
   const span = document.createElement("span");
   span.textContent = taskText;
 
-  const actions = document.createElement("div");
-  actions.className = "actions";
-
-  // Complete icon
-  const checkIcon = document.createElement("i");
-  checkIcon.className = "fas fa-check-circle complete";
-  checkIcon.onclick = function () {
-    li.classList.toggle("completed");
-    saveTasks();
-  };
-
-  // Edit icon
-  const editIcon = document.createElement("i");
-  editIcon.className = "fas fa-edit edit";
-  editIcon.onclick = function () {
-    startEditing(li, span, actions, editIcon);
-  };
-
-  // Delete icon
-  const deleteIcon = document.createElement("i");
-  deleteIcon.className = "fas fa-trash delete";
-  deleteIcon.onclick = function () {
-    li.remove();
-    saveTasks();
-
-    // Remove heading if no tasks left
-    if (taskList.children.length === 1) {
-      taskList.innerHTML = "";
-      taskList.classList.remove("has-tasks");
-    }
-  };
-
-  actions.appendChild(checkIcon);
-  actions.appendChild(editIcon);
-  actions.appendChild(deleteIcon);
+  const actions = createActions(li, span);
 
   li.appendChild(span);
   li.appendChild(actions);
   taskList.appendChild(li);
 
-  taskList.classList.add("has-tasks");
+  updateHeadingAndBorder();
 }
 
-// Save all tasks to localStorage
+// Create action icons for a task
+function createActions(li, span) {
+  const actions = document.createElement("div");
+  actions.className = "actions";
+
+  // Complete
+  const checkIcon = createIcon("fas fa-check-circle complete", () => {
+    li.classList.toggle("completed");
+    saveTasks();
+  });
+
+  // Edit
+  const editIcon = createIcon("fas fa-edit edit", () => {
+    startEditing(li, span);
+  });
+
+  // Delete
+  const deleteIcon = createIcon("fas fa-trash delete", () => {
+    li.remove();
+    saveTasks();
+    updateHeadingAndBorder();
+  });
+
+  actions.appendChild(checkIcon);
+  actions.appendChild(editIcon);
+  actions.appendChild(deleteIcon);
+
+  return actions;
+}
+
+// Helper to create icons
+function createIcon(className, onClick) {
+  const icon = document.createElement("i");
+  icon.className = className;
+  icon.onclick = onClick;
+  return icon;
+}
+
+// Start editing a task
+function startEditing(li, span) {
+  const originalText = span.textContent;
+  const input = document.createElement("input");
+  input.type = "text";
+  input.className = "edit-input";
+  input.value = originalText;
+
+  const actions = li.querySelector(".actions");
+
+  // Save & Delete icons during editing
+  const saveIcon = createIcon("fas fa-save save", finishEdit);
+  const deleteIcon = createIcon("fas fa-trash delete", () => {
+    li.remove();
+    saveTasks();
+    updateHeadingAndBorder();
+  });
+
+  li.replaceChild(input, span);
+  actions.innerHTML = "";
+  actions.appendChild(saveIcon);
+  actions.appendChild(deleteIcon);
+
+  input.focus();
+  input.select();
+
+  function finishEdit() {
+    const newVal = input.value.trim();
+    span.textContent = newVal || originalText; // if empty → restore old text
+    li.replaceChild(span, input);
+    const newActions = createActions(li, span);
+    li.replaceChild(newActions, actions);
+    saveTasks();
+  }
+
+  function cancelEdit() {
+    span.textContent = originalText; // restore old text
+    li.replaceChild(span, input);
+    const newActions = createActions(li, span);
+    li.replaceChild(newActions, actions);
+  }
+
+  // Enter = save, Esc = cancel
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      finishEdit();
+    }
+    if (e.key === "Escape") {
+      e.preventDefault();
+      cancelEdit();
+    }
+  });
+}
+
+// Save tasks in localStorage
 function saveTasks() {
   const tasks = [];
   document.querySelectorAll("#taskList li").forEach((li) => {
@@ -97,39 +149,32 @@ function loadTasks() {
       createTaskElement(task.text, task.completed)
     );
   }
+  updateHeadingAndBorder();
 }
 
-// Editing logic
-function startEditing(li, span, actions, editIcon) {
-  const input = document.createElement("input");
-  input.type = "text";
-  input.value = span.textContent;
+// Add heading and border when tasks exist
+function updateHeadingAndBorder() {
+  // Count only real tasks (exclude heading)
+  const tasks = Array.from(taskList.children).filter(
+    (li) => !li.classList.contains("list-heading")
+  );
 
-  const saveIcon = document.createElement("i");
-  saveIcon.className = "fas fa-save save";
-
-  const finishEdit = () => {
-    if (input.value.trim() !== "") {
-      span.textContent = input.value.trim();
-      saveTasks();
+  if (tasks.length > 0) {
+    taskList.classList.add("has-tasks");
+    if (!document.querySelector(".list-heading")) {
+      const heading = document.createElement("li");
+      heading.textContent = "Your List";
+      heading.className = "list-heading";
+      taskList.insertBefore(heading, taskList.firstChild);
     }
-    li.replaceChild(span, input);
-    actions.replaceChild(editIcon, saveIcon);
-  };
-
-  saveIcon.onclick = finishEdit;
-
-  input.addEventListener("keypress", (e) => {
-    if (e.key === "Enter") finishEdit();
-  });
-
-  li.replaceChild(input, span);
-  actions.replaceChild(saveIcon, editIcon);
-  input.focus();
+  } else {
+    taskList.classList.remove("has-tasks");
+    taskList.innerHTML = ""; // remove everything including heading
+  }
 }
 
-// Add task when Enter is pressed in input box
-taskInput.addEventListener("keypress", (e) => {
+// Add task when pressing Enter in input
+taskInput.addEventListener("keydown", (e) => {
   if (e.key === "Enter") {
     addTask();
   }
