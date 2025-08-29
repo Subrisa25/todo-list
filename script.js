@@ -1,7 +1,9 @@
 const taskInput = document.getElementById("taskInput");
 const taskList = document.getElementById("taskList");
 
-// Function to add task
+// Load tasks when page loads
+window.onload = loadTasks;
+
 function addTask() {
   const taskText = taskInput.value.trim();
   if (taskText === "") {
@@ -9,7 +11,14 @@ function addTask() {
     return;
   }
 
-  // If no tasks yet, add heading inside UL
+  createTaskElement(taskText);
+  saveTasks();
+
+  taskInput.value = "";
+}
+
+function createTaskElement(taskText, isCompleted = false) {
+  // If no heading yet, add it
   if (!document.querySelector("#taskList .list-heading")) {
     const headingLi = document.createElement("li");
     headingLi.textContent = "Your List";
@@ -18,6 +27,7 @@ function addTask() {
   }
 
   const li = document.createElement("li");
+  if (isCompleted) li.classList.add("completed");
 
   const span = document.createElement("span");
   span.textContent = taskText;
@@ -25,24 +35,29 @@ function addTask() {
   const actions = document.createElement("div");
   actions.className = "actions";
 
+  // Complete icon
   const checkIcon = document.createElement("i");
   checkIcon.className = "fas fa-check-circle complete";
   checkIcon.onclick = function () {
     li.classList.toggle("completed");
+    saveTasks();
   };
 
+  // Edit icon
   const editIcon = document.createElement("i");
   editIcon.className = "fas fa-edit edit";
   editIcon.onclick = function () {
     startEditing(li, span, actions);
   };
 
+  // Delete icon
   const deleteIcon = document.createElement("i");
   deleteIcon.className = "fas fa-trash delete";
   deleteIcon.onclick = function () {
     li.remove();
+    saveTasks();
 
-    // If only heading remains, remove heading too
+    // Remove heading if no tasks left
     if (taskList.children.length === 1) {
       taskList.innerHTML = "";
       taskList.classList.remove("has-tasks");
@@ -57,75 +72,58 @@ function addTask() {
   li.appendChild(actions);
   taskList.appendChild(li);
 
-  // Show border when tasks exist
   taskList.classList.add("has-tasks");
-
-  taskInput.value = "";
 }
 
-// Inline editing
+// Save all tasks to localStorage
+function saveTasks() {
+  const tasks = [];
+  document.querySelectorAll("#taskList li").forEach((li) => {
+    if (!li.classList.contains("list-heading")) {
+      tasks.push({
+        text: li.querySelector("span").textContent,
+        completed: li.classList.contains("completed"),
+      });
+    }
+  });
+  localStorage.setItem("tasks", JSON.stringify(tasks));
+}
+
+// Load tasks from localStorage
+function loadTasks() {
+  const storedTasks = JSON.parse(localStorage.getItem("tasks")) || [];
+  if (storedTasks.length > 0) {
+    storedTasks.forEach((task) =>
+      createTaskElement(task.text, task.completed)
+    );
+  }
+}
+
+// Editing logic
 function startEditing(li, span, actions) {
   const input = document.createElement("input");
   input.type = "text";
   input.value = span.textContent;
-  input.className = "edit-input";
 
-  // Function to save changes
-  function saveTask() {
-    span.textContent = input.value.trim() || span.textContent;
-    li.replaceChild(span, input);
-
-    // Restore all 3 icons (check + edit + delete)
-    actions.innerHTML = "";
-    actions.appendChild(checkIcon);
-    actions.appendChild(editIcon);
-    actions.appendChild(deleteIcon);
-  }
-
-  // Keep original icons to restore later
-  const checkIcon = document.createElement("i");
-  checkIcon.className = "fas fa-check-circle complete";
-  checkIcon.onclick = function () {
-    li.classList.toggle("completed");
-  };
-
-  const editIcon = document.createElement("i");
-  editIcon.className = "fas fa-edit edit";
-  editIcon.onclick = function () {
-    startEditing(li, span, actions);
-  };
-
-  const deleteIcon = document.createElement("i");
-  deleteIcon.className = "fas fa-trash delete";
-  deleteIcon.onclick = function () {
-    li.remove();
-  };
-
-  // Save icon
   const saveIcon = document.createElement("i");
-  saveIcon.className = "fas fa-check save";
-  saveIcon.onclick = saveTask;
+  saveIcon.className = "fas fa-save save";
 
-  // Replace span with input
-  li.replaceChild(input, span);
-  input.focus();
-
-  // Save on Enter key
-  input.addEventListener("keypress", function(event) {
-    if (event.key === "Enter") {
-      saveTask();
+  const finishEdit = () => {
+    if (input.value.trim() !== "") {
+      span.textContent = input.value.trim();
+      saveTasks();
     }
+    li.replaceChild(span, input);
+    actions.replaceChild(editIcon, saveIcon);
+  };
+
+  saveIcon.onclick = finishEdit;
+
+  input.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") finishEdit();
   });
 
-  // Show save + delete during editing
-  actions.innerHTML = "";
-  actions.appendChild(saveIcon);
-  actions.appendChild(deleteIcon);
+  li.replaceChild(input, span);
+  actions.replaceChild(saveIcon, editIcon);
+  input.focus();
 }
-
-// Add task with Enter key
-taskInput.addEventListener("keypress", function(event) {
-  if (event.key === "Enter") {
-    addTask();
-  }
-});
