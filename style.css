@@ -1,0 +1,155 @@
+/* General body styling */
+body {
+  font-family: Arial, sans-serif;
+  background: #f5f7fa;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+
+/* To-Do container box */
+.todo-container {
+  background: #fff;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  width: 350px;
+}
+
+/* Title */
+h2 {
+  text-align: center;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+/* Input + Add button row */
+.input-section {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid green;
+  border-radius: 8px;
+  outline: none;
+}
+
+input:focus{
+    border: 2px solid green;
+}
+button {
+  margin-left: 8px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  background-color: #4CAF50;
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0e6812;
+}
+
+/* List styling */
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+/* Default UL (no border when empty) */
+#taskList {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* When tasks are present */
+#taskList.has-tasks {
+  border: 2px solid green;
+  border-radius: 5px;
+  padding: 10px;
+}
+
+/* Task item */
+li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  margin-bottom: 6px;
+  background: #f1f1f1;
+  border-radius: 8px;
+}
+
+/* Heading inside UL */
+li.list-heading {
+  font-weight: bold;
+  font-size: 20px;
+  color: green;
+  background-color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  margin-bottom: 6px;
+  cursor: default;
+}
+
+/* Completed task */
+li.completed span {
+  text-decoration: line-through;
+  color: gray;
+}
+
+/* Actions (icons area) */
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* All icons */
+.actions i {
+  cursor: pointer;
+  font-size: 16px;
+  padding: 6px;
+  border-radius: 6px;
+  transition: 0.2s;
+}
+
+/* Edit icon */
+.actions .edit {
+  color: orange;
+}
+.actions .edit:hover {
+  background: rgba(255,165,0,0.2);
+}
+
+/* Delete icon */
+.actions .delete {
+  color: red;
+}
+.actions .delete:hover {
+  background: rgba(255,0,0,0.2);
+}
+
+/* Save icon */
+.actions .save {
+  color: green;
+}
+.actions .save:hover {
+  background: rgba(0,128,0,0.2);
+}
+
+/* Inline edit input */
+.edit-input {
+  flex: 1;
+  padding: 6px;
+  border: 1px solid #aaa;
+  border-radius: 6px;
+  outline: none;
+}
