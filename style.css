@@ -103,7 +103,7 @@ li.list-heading {
 /* Completed task */
 li.completed span {
   text-decoration: line-through;
-  color: gray;
+  color: green;
 }
 
 /* Actions (icons area) */
